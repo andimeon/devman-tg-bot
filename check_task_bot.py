@@ -62,7 +62,8 @@ def task_message(result, user_id, bot):
 
 def main():
     load_dotenv()
-    logging.basicConfig(filename='app.log', format='%(asctime)s %(message)s', level=logging.ERROR)
+    logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
+    logging.info('Bot runnig...')
     url_api = 'https://dvmn.org/api/long_polling/'
     devman_token = os.getenv('DEVMAN_TOKEN')
     tgm_user_id = os.getenv('TGM_USER_ID')
