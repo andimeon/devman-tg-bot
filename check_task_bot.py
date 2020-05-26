@@ -10,6 +10,18 @@ from telegram import Bot
 from telegram import ParseMode
 
 
+class TelegramLogsHandler(logging.Handler):
+
+     def __init__(self, bot, user_id):
+        super().__init__()
+        self.chat_id = user_id
+        self.tg_bot = bot
+
+     
+     def emit(self, record):
+        log_entry = self.format(record)
+        self.tg_bot.send_message(chat_id=self.chat_id, text=log_entry)
+
 def get_response(token, url, timestamp_to_request):
     headers = {
         'Authorization': f'Token {token}'
@@ -26,18 +38,6 @@ def get_timestamp(response):
     if 'timestamp_to_request' in response:
         return response['timestamp_to_request']
     return time.time()
-
-
-def hello_message(user_id, bot):
-    user_info = bot.getChat(chat_id=user_id)
-    first_name = user_info['first_name']
-    last_name = user_info['last_name']
-    username = f'{first_name} {last_name}'
-    start_text = dedent(f'''\
-            *Devman Task Bot начал работу.*
-
-            _{username}_, когда работа будет проверена вы получите сообщение о результате.''')
-    bot.send_message(chat_id=user_id, text=start_text, parse_mode=ParseMode.MARKDOWN)
 
 
 def task_message(result, user_id, bot):
@@ -62,15 +62,18 @@ def task_message(result, user_id, bot):
 
 def main():
     load_dotenv()
-    logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
-    logging.info('Bot runnig...')
+    
     url_api = 'https://dvmn.org/api/long_polling/'
     devman_token = os.getenv('DEVMAN_TOKEN')
     tgm_user_id = os.getenv('TGM_USER_ID')
     telegram_token = os.getenv('TELEGRAM_TOKEN')
     bot = Bot(telegram_token)
+
+    logger = logging.getLogger('Bot logger')
+    logger.setLevel(logging.INFO)
+    logger.addHandler(TelegramLogsHandler(bot, tgm_user_id))
     
-    hello_message(tgm_user_id, bot)
+    logger.info('Бот начал работу')
     timestamp_to_request = time.time()
     while True:
         try:
@@ -82,11 +85,16 @@ def main():
         except requests.exceptions.ReadTimeout:
             continue
         except requests.exceptions.ConnectionError:
-            logging.error('No connection', exc_info=True)
+            logger.error('Бот упал с ошибкой')
+            logger.error('No internet connection', exc_info=True)
             time.sleep(1800)
             continue
         except HTTPError as e:
-            logging.error(e, exc_info=True)
+            logger.error('Бот упал с ошибкой')
+            logger.error(e, exc_info=True)
+        except Exception as e:
+            logger.error('Бот упал с ошибкой')
+            logger.error(e, exc_info=True)
 
 
 if __name__ == '__main__':
