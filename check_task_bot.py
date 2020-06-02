@@ -3,11 +3,13 @@ from dotenv import load_dotenv
 import os
 import logging
 import time
-from requests import HTTPError
 import urllib
 from textwrap import dedent
 from telegram import Bot
 from telegram import ParseMode
+
+logger = logging.getLogger('Bot logger')
+logger.setLevel(logging.INFO)
 
 
 class TelegramLogsHandler(logging.Handler):
@@ -69,10 +71,7 @@ def main():
     telegram_token = os.getenv('TELEGRAM_TOKEN')
     bot = Bot(telegram_token)
     
-    logger = logging.getLogger('Bot logger')
-    logger.setLevel(logging.INFO)
     logger.addHandler(TelegramLogsHandler(bot, tgm_user_id))
-    
     logger.info('Бот начал работу')
     timestamp_to_request = time.time()
     while True:
@@ -88,7 +87,7 @@ def main():
             logger.exception('Бот упал с ошибкой')
             time.sleep(1800)
             continue
-        except Exception as e:
+        except Exception:
             logger.exception('Бот упал с ошибкой')
 
 
