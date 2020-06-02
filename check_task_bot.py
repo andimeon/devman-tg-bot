@@ -85,13 +85,11 @@ def main():
         except requests.exceptions.ReadTimeout:
             continue
         except requests.exceptions.ConnectionError:
-            logger.error('Бот упал с ошибкой')
-            logger.error('No internet connection', exc_info=True)
+            logger.exception('Бот упал с ошибкой')
             time.sleep(1800)
             continue
         except Exception as e:
-            logger.error('Бот упал с ошибкой')
-            logger.error(e, exc_info=True)
+            logger.exception('Бот упал с ошибкой')
 
 
 if __name__ == '__main__':
