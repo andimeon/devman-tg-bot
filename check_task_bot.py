@@ -11,16 +11,16 @@ from telegram import ParseMode
 
 
 class TelegramLogsHandler(logging.Handler):
-
-     def __init__(self, bot, user_id):
+    
+    def __init__(self, bot, user_id):
         super().__init__()
         self.chat_id = user_id
         self.tg_bot = bot
-
-     
-     def emit(self, record):
+    
+    def emit(self, record):
         log_entry = self.format(record)
         self.tg_bot.send_message(chat_id=self.chat_id, text=log_entry)
+
 
 def get_response(token, url, timestamp_to_request):
     headers = {
@@ -65,10 +65,10 @@ def main():
     
     url_api = 'https://dvmn.org/api/long_polling/'
     devman_token = os.getenv('DEVMAN_TOKEN')
-    tgm_user_id = os.getenv('TGM_USER_ID')
+    tgm_user_id = os.getenv('TG_USER_ID')
     telegram_token = os.getenv('TELEGRAM_TOKEN')
     bot = Bot(telegram_token)
-
+    
     logger = logging.getLogger('Bot logger')
     logger.setLevel(logging.INFO)
     logger.addHandler(TelegramLogsHandler(bot, tgm_user_id))
@@ -89,9 +89,6 @@ def main():
             logger.error('No internet connection', exc_info=True)
             time.sleep(1800)
             continue
-        except HTTPError as e:
-            logger.error('Бот упал с ошибкой')
-            logger.error(e, exc_info=True)
         except Exception as e:
             logger.error('Бот упал с ошибкой')
             logger.error(e, exc_info=True)
